@@ -1,8 +1,8 @@
 #include <Adafruit_NeoPixel.h>
 #include "RTClib.h"
 
-#define PIN        6 // On Trinket or Gemma, suggest changing this to 1
-#define NUMPIXELS 450 // Popular NeoPixel ring size
+#define PIN        6 
+#define NUMPIXELS 450 
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 RTC_DS1307 rtc;
@@ -50,11 +50,11 @@ uint16_t helpers[5][2] = {
 
 void print_time() {
 	int i;
-  	pixels.clear(); // Set all pixel colors to 'off'
+  	pixels.clear(); // Set all pixel colors to 'off' which is not 0xFF
 
 	//print "it is"
 	for (i = helpers[0][0]; i <= helpers[0][1]; i++) {
-			pixels.setPixelColor(i, 0xFF);
+			pixels.setPixelColor(i, 0xFF);		//Sets all pixels that need to be turned on to black
 	}
 	//print "past"
 	if ((rtc_minute <= 6) && (rtc_minute != 0)) {
@@ -82,14 +82,15 @@ void print_time() {
 	}
 	//print "hour"
 	for (int i = hrs[rtc_hour][0]; i <= hrs[rtc_hour][1]; i++) {
-			pixels.setPixelColor(i, 0xFF);
+		pixels.setPixelColor(i, 0xFF);
 	}
 	//print "minute"
 	for (int i = mins[rtc_minute][0]; i <= mins[rtc_minute][1]; i++) {
-			pixels.setPixelColor(i, 0xFF);
+		pixels.setPixelColor(i, 0xFF);
 	}
 }
 
+//Sets color for all black pixels
 void print_clock() {
 	int blue;
 	for (int i = 0; i <= 327; i++) { 
@@ -113,14 +114,16 @@ void print_clock() {
 void setup() {
 	Serial.begin(57600);
 	delay(500);
+	//Check if RTC is available
 	if (! rtc.begin()) {
-    	Serial.println("Couldn't find RTC");
-    while (1);
+    		Serial.println("Couldn't find RTC");
+    		while (1);
   	}
+	//Check if RTC is running
   	if (! rtc.isrunning()) {
-    	Serial.println("RTC is NOT running!");
+    		Serial.println("RTC is NOT running!");
   	}
- 
+	//Set time to a fixed value 
    	rtc.adjust(DateTime(2014, 1, 21, 4, 0, 0));
 
   	pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
@@ -129,12 +132,15 @@ void setup() {
 }
 
 void loop() {
-    DateTime now = rtc.now();
+	//Grab time now!
+	DateTime now = rtc.now();
 	int counter = now.second();
 	rtc_hour = now.hour() - 1;
+
+	//Checks if five minutes has elapsed
 	if ((counter%5) == 0) {
 		Serial.println(counter, DEC);
-		rtc_minute = counter/5;
+		rtc_minute = counter/5; //Converts minutes to 1/5 units
 		print_time();
 		print_clock();
 		delay(1000);
